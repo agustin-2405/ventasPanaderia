@@ -104,7 +104,7 @@ export default function PlanillaReparto() {
 
   // Manejar el cambio en los inputs dinámicos de la tabla
   const manejarCambioCantidad = (productoId, valor, tipo) => {
-    const cantidad = valor === '' ? 0 : parseInt(valor);
+    const cantidad = valor === '' ? 0 : parseFloat(valor);
     if (tipo === 'llevada') {
       setCantidadesLlevadas(prev => ({ ...prev, [productoId]: cantidad }));
     } else {
@@ -114,7 +114,7 @@ export default function PlanillaReparto() {
 
   // Función para sumar o restar mercadería durante el día
   const aplicarAjuste = (productoId, operacion) => {
-    const valor = parseInt(ajustes[productoId] || 0);
+    const valor = parseFloat(ajustes[productoId] || 0);
     if (valor <= 0) return;
 
     setCantidadesLlevadas(prev => {
@@ -247,18 +247,23 @@ export default function PlanillaReparto() {
                 <td style={estilos.celda}>${precioAplicado} {preciosRepartidor[producto.id] && '⭐'}</td>
                 <td style={estilos.celda}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input 
-                      type="number" 
-                      value={cantidadesLlevadas[producto.id] || ''} 
-                      onChange={(e) => manejarCambioCantidad(producto.id, e.target.value, 'llevada')}
-                      style={estilos.inputTabla}
+                    <input
+                       type="number"
+                        step="0.5"
+                        min="0"
+                        value={cantidadesLlevadas[producto.id] || ''}
+                        onChange={(e) => manejarCambioCantidad(producto.id, e.target.value, 'llevada')}
+                        style={estilos.inputTabla}
                     />
                     <div style={estilos.contenedorAjuste}>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0"
                         placeholder="Ajuste"
-                        value={ajustes[producto.id] || ''} 
-                        onChange={(e) => setAjustes({...ajustes, [producto.id]: e.target.value})}
+                        value={ajustes[producto.id] || ''}
+                        onChange={(e) =>
+                        setAjustes({...ajustes,[producto.id]: e.target.value})}
                         style={estilos.inputAjuste}
                       />
                       <button onClick={() => aplicarAjuste(producto.id, 'sumar')} style={{...estilos.btnAjuste, backgroundColor: '#27ae60'}}>+</button>
@@ -267,10 +272,11 @@ export default function PlanillaReparto() {
                   </div>
                 </td>
                 <td style={estilos.celda}>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
+                    step="0.5"
                     min="0"
-                    value={cantidadesDevueltas[producto.id] || ''} 
+                    value={cantidadesDevueltas[producto.id] || ''}
                     onChange={(e) => manejarCambioCantidad(producto.id, e.target.value, 'retorno')}
                     onFocus={() => setFase('RETORNO')} 
                     style={estilos.inputTabla}
