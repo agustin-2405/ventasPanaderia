@@ -1,3 +1,4 @@
+import API from "../servicios/api";
 import { useEffect, useState } from "react";
 import {
   Package,
@@ -24,11 +25,10 @@ export default function Inicio() {
 
   async function cargarDatos() {
     try {
-      const [resProductos, resRepartidores] = await Promise.all([
-        fetch("http://localhost:4000/api/productos"),
-        fetch("http://localhost:4000/api/repartidores"),
+      const [productosRes, repartidoresRes] = await Promise.all([
+        fetch(`${API}/productos`),
+        fetch(`${API}/repartidores`),
       ]);
-
       if (resProductos.ok) setProductos(await resProductos.json());
 
       if (resRepartidores.ok) setRepartidores(await resRepartidores.json());
