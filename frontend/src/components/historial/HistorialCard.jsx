@@ -75,8 +75,9 @@ const estilos = {
   header: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
+    alignItems: "flex-start",
+    gap: 12,
+    flexWrap: "wrap",
   },
 
   fecha: {
@@ -90,6 +91,7 @@ const estilos = {
     display: "flex",
     gap: 10,
     alignItems: "center",
+    flexWrap: "wrap",
   },
 
   badge: {

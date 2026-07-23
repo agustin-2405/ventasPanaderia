@@ -13,7 +13,7 @@ export default function HistorialToolbar({
       subtitulo="Seleccioná un repartidor para consultar su historial."
     >
       <div style={estilos.toolbar}>
-        <div style={{ flex: 1 }}>
+        <div style={estilos.select}>
           <Select
             label="Repartidor"
             value={repartidorSeleccionado}
@@ -25,12 +25,14 @@ export default function HistorialToolbar({
           />
         </div>
 
-        <Button
-          variant="secondary"
-          onClick={() => (window.location.hash = "#reparto")}
-        >
-          Volver
-        </Button>
+        <div style={estilos.boton}>
+          <Button
+            variant="secondary"
+            onClick={() => (window.location.hash = "#reparto")}
+          >
+            Volver
+          </Button>
+        </div>
       </div>
     </Card>
   );
@@ -39,7 +41,16 @@ export default function HistorialToolbar({
 const estilos = {
   toolbar: {
     display: "flex",
-    gap: 20,
+    flexWrap: "wrap",
+    gap: 16,
     alignItems: "flex-end",
+  },
+
+  select: {
+    flex: "1 1 250px",
+  },
+
+  boton: {
+    flex: "0 0 auto",
   },
 };
