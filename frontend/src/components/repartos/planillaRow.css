@@ -1,0 +1,28 @@
+.planilla-llevada {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.planilla-ajustes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.planilla-input-grande {
+  width: 90px;
+}
+
+.planilla-input-chico {
+  width: 70px;
+}
+
+.planilla-vendido {
+  font-weight: bold;
+  color: #16a34a;
+}
+
+.planilla-subtotal {
+  font-weight: bold;
+}

@@ -1,5 +1,13 @@
-class ProductoRepository {
-  async save(producto) { throw new Error("Método no implementado"); }
-  async findById(id) { throw new Error("Método no implementado"); }
-  async findAll() { throw new Error("Método no implementado"); }
+class ProductoRepositorio {
+  async save() {}
+
+  async listar() {}
+
+  async findById() {}
+
+  async findByNombre() {}
+
+  async updateStock() {}
 }
+
+module.exports = ProductoRepositorio;

@@ -1,164 +1,248 @@
-import React, { useState } from "react";
-import { exito, error } from "../servicios/notificaciones";
+import { useState, useEffect } from "react";
+import Page from "../components/ui/Page";
+import Card from "../components/ui/Card";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import Table from "../components/ui/Table";
+import EditarProductoModal from "../components/productos/EditarProductoModal";
+import {
+  listarProductos,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
+} from "../servicios/productosApi";
+import "./altaProducto.css";
+
+import { exito, error, confirmar } from "../servicios/notificaciones";
+import { Pencil, Trash2 } from "lucide-react";
 
 export default function AltaProductos() {
-  // 1. Definimos los estados para controlar los inputs del formulario
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [stockInicial, setStockInicial] = useState("");
-
-  // Estados para manejar el feedback visual del usuario
   const [cargando, setCargando] = useState(false);
+  const [productos, setProductos] = useState([]);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [productoEditando, setProductoEditando] = useState(null);
+  const [nuevoPrecio, setNuevoPrecio] = useState("");
+  const [nuevoNombre, setNuevoNombre] = useState("");
 
-  // 2. Función que se ejecuta al enviar el formulario
+  async function obtenerProductos() {
+    try {
+      const datos = await listarProductos();
+      setProductos(datos);
+    } catch (err) {
+      error("Error", err.message);
+    }
+  }
+
   const manejarEnvio = async (e) => {
-    e.preventDefault(); // Evita que la página se recargue
-    setCargando(true);
+    e.preventDefault();
 
-    // Validaciones básicas en el frontend antes de mandar al backend
-    if (!nombre || precio <= 0) {
+    if (!nombre || Number(precio) <= 0) {
       error("Datos inválidos", "Por favor, completa los campos correctamente.");
-
-      setCargando(false);
       return;
     }
 
-    // Armamos el objeto tal cual lo espera nuestro "productoControlador" en Node
-    const nuevoProducto = {
-      nombre,
-      precio: parseFloat(precio),
-      stockInicial: stockInicial ? parseFloat(stockInicial) : 0,
-    };
+    setCargando(true);
 
     try {
-      // 3. Hacemos la petición HTTP POST a nuestro Adaptador de Entrada en Node
-      const respuesta = await fetch("http://localhost:4000/api/productos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(nuevoProducto),
+      const datos = await crearProducto({
+        nombre,
+        precio: Number(precio),
+        stockInicial: stockInicial ? Number(stockInicial) : 0,
       });
 
-      const datos = await respuesta.json();
+      exito("Producto registrado", `${datos.nombre} registrado correctamente.`);
 
-      if (respuesta.ok) {
-        // Si el backend respondió con un 201 (Created)
-        exito(
-          "Producto registrado",
-          `${datos.nombre} registrado correctamente.`,
-        );
-        // Limpiamos el formulario
-        setNombre("");
-        setPrecio("");
-        setStockInicial("");
-      } else {
-        // Si el dominio rebotó la carga (ej: producto duplicado, error 400)
-        error(
-          "Error al registrar producto",
-          `Error del sistema: ${datos.error}`,
-        );
-      }
+      await obtenerProductos();
+
+      setNombre("");
+      setPrecio("");
+      setStockInicial("");
     } catch (e) {
-      // Si el servidor está apagado o hay error de red
-      error(
-        "Error de conexión",
-        "No se pudo conectar con el servidor de la panadería.",
-      );
+      error("Error", e.message || "No se pudo conectar con el servidor.");
     } finally {
       setCargando(false);
     }
   };
 
-  return (
-    <div style={estilos.contenedor}>
-      <h2 style={estilos.titulo}>Alta de Nuevos Productos</h2>
-      <p style={estilos.subtitulo}>
-        Cargá los productos de la panadería con sus respectivos precios.
-      </p>
+  function editarProducto(producto) {
+    setProductoEditando(producto);
+    setNuevoNombre(producto.nombre);
+    setNuevoPrecio(producto.precio);
+    setModalAbierto(true);
+  }
 
-      {/* Formulario */}
-      <form onSubmit={manejarEnvio} style={estilos.formulario}>
-        <div style={estilos.grupoInput}>
-          <label style={estilos.label}>Nombre del Producto:</label>
-          <input
-            type="text"
-            placeholder="Ej: Pan Casero, Facturas de Crema..."
+  async function guardarProducto() {
+    if (!productoEditando) return;
+
+    if (!nuevoNombre.trim()) {
+      error("Nombre inválido", "Ingresá un nombre.");
+      return;
+    }
+
+    if (Number(nuevoPrecio) <= 0) {
+      error("Precio inválido", "Ingresá un precio mayor que cero.");
+      return;
+    }
+
+    try {
+      const productoActualizado = await actualizarProducto(
+        productoEditando.id,
+        {
+          nombre: nuevoNombre,
+          precio: Number(nuevoPrecio),
+        },
+      );
+
+      setProductos((prev) =>
+        prev.map((producto) =>
+          producto.id === productoActualizado.id
+            ? productoActualizado
+            : producto,
+        ),
+      );
+
+      exito(
+        "Producto actualizado",
+        `${productoActualizado.nombre} fue actualizado correctamente.`,
+      );
+
+      setModalAbierto(false);
+      setProductoEditando(null);
+      setNuevoNombre("");
+      setNuevoPrecio("");
+    } catch (err) {
+      error("No se pudo actualizar", err.message);
+    }
+  }
+
+  async function eliminar(producto) {
+    const respuesta = await confirmar({
+      titulo: "¿Eliminar producto?",
+      texto: `"${producto.nombre}" será eliminado permanentemente.`,
+      botonConfirmar: "Eliminar",
+    });
+
+    if (!respuesta.isConfirmed) return;
+
+    try {
+      await eliminarProducto(producto.id);
+
+      setProductos((prev) => prev.filter((p) => p.id !== producto.id));
+
+      exito(
+        "Producto eliminado",
+        `${producto.nombre} fue eliminado correctamente.`,
+      );
+    } catch (err) {
+      error("No se pudo eliminar", err.message);
+    }
+  }
+
+  useEffect(() => {
+    obtenerProductos();
+  }, []);
+
+  return (
+    <Page
+      titulo="Administración de Productos"
+      descripcion="Registrá nuevos productos y administrá sus precios."
+    >
+      <Card
+        titulo="Nuevo producto"
+        subtitulo="Completá los datos para agregar un producto."
+      >
+        <form onSubmit={manejarEnvio} className="productos-form">
+          <Input
+            label="Nombre del producto"
+            placeholder="Ej: Pan Casero"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             disabled={cargando}
-            style={estilos.input}
             required
           />
-        </div>
 
-        <div style={estilos.grupoInput}>
-          <label style={estilos.label}>Precio de Venta ($):</label>
-          <input
+          <Input
+            label="Precio de venta ($)"
             type="number"
             step="0.01"
-            placeholder="Ej: 1500"
+            placeholder="1500"
             value={precio}
             onChange={(e) => setPrecio(e.target.value)}
             disabled={cargando}
-            style={estilos.input}
             required
           />
-        </div>
 
-        <div style={estilos.grupoInput}>
-          <label style={estilos.label}>Stock Inicial (Opcional):</label>
-          <input
-            type="number"
-            step="0.5"
-            min="0"
-            placeholder="Ej: 50 o 50.5"
-            value={stockInicial}
-            onChange={(e) => setStockInicial(e.target.value)}
-            disabled={cargando}
-            style={estilos.input}
-          />
-        </div>
+          <div className="productos-actions">
+            <Button type="submit" variant="primary" disabled={cargando}>
+              {cargando ? "Guardando..." : "Registrar producto"}
+            </Button>
+          </div>
+        </form>
+      </Card>
 
-        <button type="submit" disabled={cargando} style={estilos.boton}>
-          {cargando ? "Guardando..." : "Registrar Producto"}
-        </button>
-      </form>
-    </div>
+      <Card
+        titulo="Productos registrados"
+        subtitulo="Administrá los productos cargados."
+      >
+        <Table
+          columns={[
+            {
+              key: "nombre",
+              title: "Producto",
+            },
+            {
+              key: "precio",
+              title: "Precio",
+              align: "right",
+              render: (p) => `$${Number(p.precio).toLocaleString("es-AR")}`,
+            },
+          ]}
+          data={productos}
+          emptyMessage="No hay productos registrados."
+          renderActions={(producto) => (
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+              }}
+            >
+              <Button
+                size="small"
+                variant="secondary"
+                onClick={() => editarProducto(producto)}
+              >
+                <Pencil size={16} />
+              </Button>
+
+              <Button
+                size="small"
+                variant="danger"
+                onClick={() => eliminar(producto)}
+              >
+                <Trash2 size={16} />
+              </Button>
+            </div>
+          )}
+        />
+      </Card>
+      <EditarProductoModal
+        abierto={modalAbierto}
+        producto={productoEditando}
+        nombre={nuevoNombre}
+        setNombre={setNuevoNombre}
+        precio={nuevoPrecio}
+        setPrecio={setNuevoPrecio}
+        onCancelar={() => {
+          setModalAbierto(false);
+          setProductoEditando(null);
+          setNuevoNombre("");
+          setNuevoPrecio("");
+        }}
+        onGuardar={guardarProducto}
+      />
+    </Page>
   );
 }
-
-// Estilos rápidos en línea para que no reniegues con CSS por ahora
-const estilos = {
-  contenedor: {
-    maxWidth: "500px",
-    margin: "40px auto",
-    padding: "20px",
-    fontFamily: "Arial, sans-serif",
-    border: "1px solid #ddd",
-    borderRadius: "8px",
-    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-  },
-  titulo: { margin: "0 0 10px 0", color: "#333" },
-  subtitulo: { fontSize: "14px", color: "#666", marginBottom: "20px" },
-  formulario: { display: "flex", flexDirection: "column", gap: "15px" },
-  grupoInput: { display: "flex", flexDirection: "column", gap: "5px" },
-  label: { fontWeight: "bold", fontSize: "14px", color: "#444" },
-  input: {
-    padding: "10px",
-    fontSize: "16px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-  },
-  boton: {
-    padding: "12px",
-    fontSize: "16px",
-    backgroundColor: "#e67e22",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    marginTop: "10px",
-  },
-};

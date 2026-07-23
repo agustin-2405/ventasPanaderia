@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Producto {
+  id     String  @id @default(uuid())
+  nombre String  @unique
+  precio Decimal @db.Decimal(10, 2)
+  stock  Int     @default(0)
+
+  items             ItemPlanilla[]
+  preciosEspeciales PrecioEspecial[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Repartidor {
+  id       String  @id @default(uuid())
+  nombre   String
+  telefono String?
+  vehiculo String?
+
+  planillas         Planilla[]
+  preciosEspeciales PrecioEspecial[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Planilla {
+  id String @id @default(uuid())
+
+  repartidorId String
+  repartidor   Repartidor @relation(fields: [repartidorId], references: [id])
+
+  fecha DateTime @default(now())
+
+  estado EstadoPlanilla @default(ABIERTA)
+
+  items ItemPlanilla[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ItemPlanilla {
+  id String @id @default(uuid())
+
+  planillaId String
+  planilla   Planilla @relation(fields: [planillaId], references: [id], onDelete: Cascade)
+
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  cantidadLlevada Decimal @db.Decimal(10, 1)
+
+  cantidadDevuelta Decimal @default(0) @db.Decimal(10, 1)
+}
+
+model PrecioEspecial {
+  id String @id @default(uuid())
+
+  repartidorId String
+  repartidor   Repartidor @relation(fields: [repartidorId], references: [id], onDelete: Cascade)
+
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  precio Decimal @db.Decimal(10, 2)
+
+  @@unique([repartidorId, productoId])
+}
+
+enum EstadoPlanilla {
+  ABIERTA
+  CERRADA
+}

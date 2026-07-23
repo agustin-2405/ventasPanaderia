@@ -1,0 +1,38 @@
+.planilla-loading {
+  text-align: center;
+  margin-top: 50px;
+  font-family: Arial, sans-serif;
+}
+
+.planilla-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ==========================
+   TABLET
+========================== */
+
+@media (max-width: 992px) {
+  .planilla-actions {
+    justify-content: center;
+  }
+}
+
+/* ==========================
+   CELULAR
+========================== */
+
+@media (max-width: 768px) {
+  .planilla-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .planilla-actions button {
+    width: 100%;
+  }
+}

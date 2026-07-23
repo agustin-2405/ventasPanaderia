@@ -1,0 +1,67 @@
+.planilla-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.planilla-card-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.planilla-card-price {
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.planilla-card-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planilla-card-section label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.planilla-card-ajuste {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.planilla-card-ajuste > div:first-child,
+.planilla-card-ajuste .input-container {
+  flex: 1;
+}
+
+.planilla-card-footer {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 14px;
+}
+
+.planilla-card-footer span {
+  display: block;
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.planilla-card-total {
+  color: #16a34a;
+  font-size: 18px;
+}
+
+@media (min-width: 769px) {
+  .planilla-card {
+    display: none;
+  }
+}

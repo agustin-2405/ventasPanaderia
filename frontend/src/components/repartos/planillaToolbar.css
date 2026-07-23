@@ -1,0 +1,85 @@
+.planilla-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.planilla-selector {
+  flex: 1;
+  min-width: 260px;
+}
+
+.planilla-estado {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planilla-estado-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.planilla-badge {
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  min-width: 100px;
+}
+
+.planilla-badge.salida {
+  background: #2563eb;
+}
+
+.planilla-badge.retorno {
+  background: #16a34a;
+}
+
+.planilla-toolbar-buttons {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* ==========================
+   TABLET
+========================== */
+
+@media (max-width: 992px) {
+  .planilla-toolbar {
+    align-items: stretch;
+  }
+}
+
+/* ==========================
+   CELULAR
+========================== */
+
+@media (max-width: 768px) {
+  .planilla-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .planilla-selector {
+    min-width: 100%;
+  }
+
+  .planilla-toolbar-buttons {
+    width: 100%;
+    margin-left: 0;
+    flex-direction: column;
+  }
+
+  .planilla-toolbar-buttons button {
+    width: 100%;
+  }
+
+  .planilla-badge {
+    width: 100%;
+  }
+}

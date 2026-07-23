@@ -1,0 +1,181 @@
+.sidebar {
+  width: 280px;
+  min-height: 100vh;
+  background: var(--color-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  color: var(--color-text-white);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 25px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-logo img {
+  width: 170px;
+  background: var(--color-surface);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.sidebar-menu {
+  flex: 1;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  color: var(--color-text-white);
+  margin-bottom: 8px;
+  transition: all 0.25s ease;
+}
+
+.sidebar-item:hover {
+  background: #3a506b;
+  transform: translateX(4px);
+}
+
+.sidebar-item.active {
+  background: var(--color-accent);
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sidebar-version {
+  font-size: 12px;
+  color: #bfc9d1;
+}
+
+.sidebar-group {
+  margin-bottom: 25px;
+}
+
+.sidebar-group-title {
+  font-size: 11px;
+  color: #95a5a6;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  padding-left: 10px;
+  text-transform: uppercase;
+}
+
+.sidebar-item.active {
+  background: #e67e22;
+  position: relative;
+  font-weight: 600;
+}
+
+.sidebar-item.active::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+
+  top: 10%;
+
+  width: 4px;
+
+  height: 80%;
+
+  background: var(--color-text-white);
+
+  border-radius: 5px;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+.sidebar-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -300px;
+
+    width: 280px;
+    height: 100vh;
+
+    z-index: 1001;
+
+    transition: left 0.3s ease;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-toggle {
+    display: flex;
+
+    position: fixed;
+
+    top: 16px;
+
+    left: 16px;
+
+    width: 46px;
+
+    height: 46px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: var(--color-sidebar);
+
+    color: white;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    z-index: 1100;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  .sidebar-overlay {
+    display: block;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    z-index: 1000;
+  }
+}

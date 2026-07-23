@@ -1,0 +1,76 @@
+.repartidores-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.repartidores-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.repartidores-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.repartidores-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.repartidor-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.repartidor-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.repartidor-nombre {
+  margin: 0;
+  font-size: 16px;
+  color: #111827;
+}
+
+.repartidor-info {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media (max-width: 768px) {
+  .repartidores-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .repartidores-actions {
+    justify-content: stretch;
+  }
+
+  .repartidores-actions button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,29 @@
+.productos-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.productos-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.productos-grid {
+  display: grid;
+  gap: 24px;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media (max-width: 768px) {
+  .productos-actions {
+    justify-content: stretch;
+  }
+
+  .productos-actions button {
+    width: 100%;
+  }
+}

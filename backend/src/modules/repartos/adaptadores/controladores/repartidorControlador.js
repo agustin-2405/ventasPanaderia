@@ -1,4 +1,4 @@
-const repository = require('../proveedores/repartidorRepositorioSupabase'); 
+const repository = require("../proveedores/repartidorRepositorioPrisma");
 
 class RepartidorControlador {
   

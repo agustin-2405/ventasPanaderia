@@ -1,4 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import Page from "../components/ui/Page";
+import {
+  crearPlanilla,
+  actualizarPlanilla,
+  cerrarPlanilla as cerrarPlanillaApi,
+  obtenerPreciosEspeciales,
+} from "../servicios/planillasApi";
+import { listarRepartidores } from "../servicios/repartidoresApi";
+import { listarProductos } from "../servicios/productosApi";
+import PlanillaTable from "../components/repartos/PlanillaTable";
+import PlanillaToolbar from "../components/repartos/PlanillaToolbar";
+import Button from "../components/ui/Button";
+import "./planillaReparto.css";
 
 export default function PlanillaReparto() {
   // Datos maestros que traemos del backend
@@ -6,57 +19,63 @@ export default function PlanillaReparto() {
   const [productos, setProductos] = useState([]);
 
   // Estado de la planilla actual en la pantalla
-  const [repartidorSeleccionado, setRepartidorSeleccionado] = useState('');
+  const [repartidorSeleccionado, setRepartidorSeleccionado] = useState("");
   const [cantidadesLlevadas, setCantidadesLlevadas] = useState({}); // { productoId: cantidad }
   const [cantidadesDevueltas, setCantidadesDevueltas] = useState({}); // { productoId: cantidad }
   const [preciosRepartidor, setPreciosRepartidor] = useState({}); // { productoId: precio }
   const [ajustes, setAjustes] = useState({}); // Para sumas/restas rápidas
-  
+
   // Control de flujo de la pantalla
-  const [fase, setFase] = useState('SALIDA'); // 'SALIDA' (Mañana) o 'RETORNO' (Tarde)
+  const [fase, setFase] = useState("SALIDA"); // 'SALIDA' (Mañana) o 'RETORNO' (Tarde)
   const [planillaCreadaId, setPlanillaCreadaId] = useState(null);
   const [cargando, setCargando] = useState(true);
 
+useEffect(() => {
+  console.log("preciosRepartidor actualizado:", preciosRepartidor);
+}, [preciosRepartidor]);
+
   useEffect(() => {
-    // Cargamos repartidores y productos en paralelo al entrar a la pantalla
     const cargarDatosMaestros = async () => {
       try {
-        const [resRep, resProd] = await Promise.all([
-          fetch('http://localhost:4000/api/repartidores'),
-          fetch('http://localhost:4000/api/productos')
+        const [reps, prods] = await Promise.all([
+          listarRepartidores(),
+          listarProductos(),
         ]);
-        const reps = await resRep.json();
-        const prods = await resProd.json();
+
         setRepartidores(reps);
         setProductos(prods);
       } catch (err) {
-        alert('Error al cargar datos de logística.');
+        alert("Error al cargar datos de logística.");
       } finally {
         setCargando(false);
       }
     };
+
     cargarDatosMaestros();
   }, []);
 
   // Cada vez que cambia el repartidor, buscamos sus precios específicos
   useEffect(() => {
-    if (repartidorSeleccionado) {
-      fetch(`http://localhost:4000/api/repartos/precios/${repartidorSeleccionado}`)
-        .then(res => {
-          if (!res.ok) throw new Error('Error al traer precios especiales');
-          return res.json();
-        })
-        .then(datos => {
-          console.log("Precios especiales cargados:", datos);
-          setPreciosRepartidor(datos);
-        })
-        .catch(err => {
-          console.error("Error fetch precios:", err);
-          setPreciosRepartidor({});
-        });
-    } else {
+    if (!repartidorSeleccionado) {
       setPreciosRepartidor({});
+      return;
     }
+
+    async function cargarPrecios() {
+      try {
+        const datos = await obtenerPreciosEspeciales(repartidorSeleccionado);
+
+console.log("Respuesta API:", datos);
+
+setPreciosRepartidor(datos);
+      } catch (err) {
+        console.error(err);
+
+        setPreciosRepartidor({});
+      }
+    }
+
+    cargarPrecios();
   }, [repartidorSeleccionado]);
 
   // Limpiar el estado al cambiar de repartidor para evitar que se mezclen los datos
@@ -65,25 +84,27 @@ export default function PlanillaReparto() {
     setPlanillaCreadaId(null);
     setCantidadesLlevadas({});
     setCantidadesDevueltas({});
-    setFase('SALIDA');
+    setFase("SALIDA");
   };
 
   // Efecto para recuperar y continuar modificando una planilla del Historial
   useEffect(() => {
     if (productos.length === 0) return;
 
-    const planillaGuardada = localStorage.getItem('planilla_a_cargar');
+    const planillaGuardada = localStorage.getItem("planilla_a_cargar");
     if (planillaGuardada) {
       try {
         const planilla = JSON.parse(planillaGuardada);
         setPlanillaCreadaId(planilla.id);
-        setRepartidorSeleccionado(planilla.repartidor_id || planilla.repartidorId);
+        setRepartidorSeleccionado(
+          planilla.repartidor_id || planilla.repartidorId,
+        );
 
         const items = planilla.productos || planilla.items || [];
         const llevadas = {};
         const devueltas = {};
 
-        items.forEach(item => {
+        items.forEach((item) => {
           const pId = item.productoId || item.producto_id;
           if (pId) {
             llevadas[pId] = item.cantidadLlevada ?? item.cantidad ?? 0;
@@ -93,22 +114,26 @@ export default function PlanillaReparto() {
 
         setCantidadesLlevadas(llevadas);
         setCantidadesDevueltas(devueltas);
-        setFase(planilla.estado === 'CERRADA' ? 'RETORNO' : (planilla.estado || 'SALIDA'));
+        setFase(
+          planilla.estado === "CERRADA"
+            ? "RETORNO"
+            : planilla.estado || "SALIDA",
+        );
       } catch (err) {
         console.error("Error al rehidratar planilla:", err);
       } finally {
-        localStorage.removeItem('planilla_a_cargar');
+        localStorage.removeItem("planilla_a_cargar");
       }
     }
   }, [productos]);
 
   // Manejar el cambio en los inputs dinámicos de la tabla
   const manejarCambioCantidad = (productoId, valor, tipo) => {
-    const cantidad = valor === '' ? 0 : parseFloat(valor);
-    if (tipo === 'llevada') {
-      setCantidadesLlevadas(prev => ({ ...prev, [productoId]: cantidad }));
+    const cantidad = valor === "" ? 0 : parseFloat(valor);
+    if (tipo === "llevada") {
+      setCantidadesLlevadas((prev) => ({ ...prev, [productoId]: cantidad }));
     } else {
-      setCantidadesDevueltas(prev => ({ ...prev, [productoId]: cantidad }));
+      setCantidadesDevueltas((prev) => ({ ...prev, [productoId]: cantidad }));
     }
   };
 
@@ -117,232 +142,127 @@ export default function PlanillaReparto() {
     const valor = parseFloat(ajustes[productoId] || 0);
     if (valor <= 0) return;
 
-    setCantidadesLlevadas(prev => {
+    setCantidadesLlevadas((prev) => {
       const actual = prev[productoId] || 0;
-      const nuevo = operacion === 'sumar' ? actual + valor : Math.max(0, actual - valor);
+      const nuevo =
+        operacion === "sumar" ? actual + valor : Math.max(0, actual - valor);
       return { ...prev, [productoId]: nuevo };
     });
 
     // Limpiar el campo de ajuste
-    setAjustes(prev => ({ ...prev, [productoId]: '' }));
+    setAjustes((prev) => ({ ...prev, [productoId]: "" }));
   };
 
   // 1. Despachar Reparto (Mañana)
   const registrarSalida = async () => {
-    if (!repartidorSeleccionado) return alert('Por favor, selecciona un repartidor.');
+    if (!repartidorSeleccionado) {
+      alert("Seleccioná un repartidor.");
+      return;
+    }
 
-    // Filtramos solo los productos que el repartidor efectivamente se lleva
     const itemsCargados = productos
-      .filter(p => cantidadesLlevadas[p.id] > 0)
-      .map(p => ({ productoId: p.id, cantidad: cantidadesLlevadas[p.id] }));
+      .filter((p) => cantidadesLlevadas[p.id] > 0)
+      .map((p) => ({
+        productoId: p.id,
+        cantidad: cantidadesLlevadas[p.id],
+      }));
 
-    if (itemsCargados.length === 0) return alert('Debes cargar al menos un producto para el reparto.');
+    if (itemsCargados.length === 0) {
+      alert("Debés cargar al menos un producto.");
+      return;
+    }
 
     try {
-      const url = planillaCreadaId 
-        ? `http://localhost:4000/api/repartos/planilla/${planillaCreadaId}` 
-        : 'http://localhost:4000/api/repartos/planilla';
-      const metodo = planillaCreadaId ? 'PUT' : 'POST';
+      let datos;
 
-      const respuesta = await fetch(url, {
-        method: metodo,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repartidorId: repartidorSeleccionado, productos: itemsCargados })
-      });
-      const datos = await respuesta.json();
-
-      if (respuesta.ok) {
-        if (!planillaCreadaId) setPlanillaCreadaId(datos.id);
-        alert('Carga guardada correctamente en el sistema.');
+      if (planillaCreadaId) {
+        datos = await actualizarPlanilla(planillaCreadaId, {
+          repartidorId: repartidorSeleccionado,
+          productos: itemsCargados,
+        });
       } else {
-        alert(`Error: ${datos.error}`);
+        datos = await crearPlanilla({
+          repartidorId: repartidorSeleccionado,
+          productos: itemsCargados,
+        });
+
+        setPlanillaCreadaId(datos.id);
       }
+
+      alert("Carga guardada correctamente.");
     } catch (err) {
-      alert('Error al conectar con el servidor.');
+      alert(err.message);
     }
   };
 
   // 2. Rendición y Cierre de Planilla (Tarde)
-  const cerrarPlanilla = async () => {
+  const cerrarPlanillaActual = async () => {
     try {
-      const respuesta = await fetch(`http://localhost:4000/api/repartos/planilla/${planillaCreadaId}/cierre`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ devoluciones: cantidadesDevueltas })
-      });
-      const datos = await respuesta.json();
+      const devoluciones = Object.entries(cantidadesDevueltas)
+        .filter(([, cantidad]) => Number(cantidad) > 0)
+        .map(([productoId, cantidad]) => ({
+          productoId,
+          cantidad: Number(cantidad),
+        }));
 
-      if (respuesta.ok) {
-        alert('¡Planilla cerrada y rendida! El stock general fue actualizado.');
-        // Reiniciamos la pantalla para el próximo reparto
-        setPlanillaCreadaId(null);
-        setRepartidorSeleccionado('');
-        setCantidadesLlevadas({});
-        setCantidadesDevueltas({});
-        setFase('SALIDA');
-      } else {
-        alert(`Error del Dominio: ${datos.error}`);
-      }
+      await cerrarPlanillaApi(planillaCreadaId, devoluciones);
+
+      alert("¡Planilla cerrada correctamente!");
+
+      setPlanillaCreadaId(null);
+      setRepartidorSeleccionado("");
+      setCantidadesLlevadas({});
+      setCantidadesDevueltas({});
+      setFase("SALIDA");
     } catch (err) {
-      alert('Error de red al cerrar la planilla.');
+      alert(err.message);
     }
   };
 
-  if (cargando) return <p style={estilos.centrado}>Cargando planilla de control...</p>;
+  if (cargando)
+    return <p className="planilla-loading">Cargando planilla de control...</p>;
 
   return (
-    <div style={estilos.contenedor}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={estilos.titulo}>Planilla de Control de Mercadería</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => window.location.hash = '#historial'} style={estilos.botonLink}>Historial</button>
-          <button onClick={() => window.location.hash = '#precios'} style={estilos.botonLink}>Gestionar Precios</button>
-        </div>
-      </div>
-
-      <p style={estilos.subtitulo}>
-        {fase === 'SALIDA' 
-          ? 'Fase Mañana: Registrá qué mercadería se lleva el repartidor.' 
-          : 'Fase Tarde: Registrá las devoluciones para calcular las ventas.'}
-      </p>
-
-      {/* Selector de Repartidor (Solo activo a la mañana) */}
-      <div style={estilos.selectorSeccion}>
-        <label style={estilos.label}>Repartidor a cargo: </label>
-        <select 
-          value={repartidorSeleccionado} 
-          onChange={(e) => manejarCambioRepartidor(e.target.value)}
-          disabled={fase === 'RETORNO'}
-          style={estilos.select}
-        >
-          <option value="">-- Seleccionar Repartidor --</option>
-          {repartidores.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-        </select>
-      </div>
+    <Page
+      titulo="Planilla de Reparto"
+      descripcion="Registrá la mercadería que se lleva y devuelve cada repartidor."
+    >
+      <PlanillaToolbar
+        repartidores={repartidores}
+        repartidorSeleccionado={repartidorSeleccionado}
+        setRepartidorSeleccionado={manejarCambioRepartidor}
+        fase={fase}
+        planillaCreadaId={planillaCreadaId}
+        abrirHistorial={() => (window.location.hash = "#historial")}
+        abrirGestionPrecios={() => (window.location.hash = "#precios")}
+      />
 
       {/* Tabla Dinámica de Mercadería */}
-      <table style={estilos.tabla}>
-        <thead>
-          <tr style={estilos.encabezado}>
-            <th style={estilos.celda}>Producto</th>
-            <th style={estilos.celda}>Precio Unit.</th>
-            <th style={estilos.celda}>Se Lleva (Mañana)</th>
-            <th style={estilos.celda}>Devuelve (Tarde)</th>
-            <th style={estilos.celda}>Vendido</th>
-            <th style={estilos.celda}>Subtotal ($)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productos.map((producto) => {
-            const llevado = cantidadesLlevadas[producto.id] || 0;
-            const devuelto = cantidadesDevueltas[producto.id] || 0;
-            const vendido = fase === 'RETORNO' ? Math.max(0, llevado - devuelto) : 0;
-            // Usamos el precio especial si existe, sino el general
-            const precioAplicado = preciosRepartidor[producto.id] || producto.precio || 0;
-            const subtotal = vendido * precioAplicado;
-
-            return (
-              <tr key={producto.id} style={estilos.fila}>
-                <td style={estilos.celda}><strong>{producto.nombre}</strong></td>
-                <td style={estilos.celda}>${precioAplicado} {preciosRepartidor[producto.id] && '⭐'}</td>
-                <td style={estilos.celda}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
-                       type="number"
-                        step="0.5"
-                        min="0"
-                        value={cantidadesLlevadas[producto.id] || ''}
-                        onChange={(e) => manejarCambioCantidad(producto.id, e.target.value, 'llevada')}
-                        style={estilos.inputTabla}
-                    />
-                    <div style={estilos.contenedorAjuste}>
-                      <input
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        placeholder="Ajuste"
-                        value={ajustes[producto.id] || ''}
-                        onChange={(e) =>
-                        setAjustes({...ajustes,[producto.id]: e.target.value})}
-                        style={estilos.inputAjuste}
-                      />
-                      <button onClick={() => aplicarAjuste(producto.id, 'sumar')} style={{...estilos.btnAjuste, backgroundColor: '#27ae60'}}>+</button>
-                      <button onClick={() => aplicarAjuste(producto.id, 'restar')} style={{...estilos.btnAjuste, backgroundColor: '#c0392b'}}>-</button>
-                    </div>
-                  </div>
-                </td>
-                <td style={estilos.celda}>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    value={cantidadesDevueltas[producto.id] || ''}
-                    onChange={(e) => manejarCambioCantidad(producto.id, e.target.value, 'retorno')}
-                    onFocus={() => setFase('RETORNO')} 
-                    style={estilos.inputTabla}
-                    placeholder="0"
-                  />
-                </td>
-                <td style={{...estilos.celda, fontWeight: 'bold', color: '#27ae60'}}>
-                  {fase === 'RETORNO' ? `${vendido} u.` : '-'}
-                </td>
-                <td style={{...estilos.celda, fontWeight: 'bold', color: '#2c3e50'}}>
-                  {fase === 'RETORNO' ? `$${subtotal.toLocaleString()}` : '-'}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-        {fase === 'RETORNO' && (
-          <tfoot>
-            <tr style={{backgroundColor: '#f9f9f9'}}>
-              <td colSpan="4" style={{...estilos.celda, textAlign: 'right', fontWeight: 'bold'}}>TOTAL RECAUDADO:</td>
-              <td colSpan="2" style={{...estilos.celda, fontWeight: 'bold', color: '#27ae60', fontSize: '18px'}}>
-                ${productos.reduce((acc, p) => {
-                  const llevado = cantidadesLlevadas[p.id] || 0;
-                  const devuelto = cantidadesDevueltas[p.id] || 0;
-                  const vendido = Math.max(0, llevado - devuelto);
-                  const precio = preciosRepartidor[p.id] || p.precio || 0;
-                  return acc + (vendido * precio);
-                }, 0).toLocaleString()}
-              </td>
-            </tr>
-          </tfoot>
-        )}
-      </table>
+      <PlanillaTable
+        productos={productos}
+        fase={fase}
+        cantidadesLlevadas={cantidadesLlevadas}
+        cantidadesDevueltas={cantidadesDevueltas}
+        preciosRepartidor={preciosRepartidor}
+        ajustes={ajustes}
+        manejarCambioCantidad={manejarCambioCantidad}
+        setAjustes={setAjustes}
+        aplicarAjuste={aplicarAjuste}
+        setFase={setFase}
+      />
 
       {/* Botones de Acción */}
-      <div style={estilos.contenedorBoton}>
-        <button onClick={registrarSalida} style={{...estilos.boton, backgroundColor: '#3498db', marginRight: '10px'}}>
-           {planillaCreadaId ? 'Actualizar Carga (Media Mañana)' : 'Registrar Salida Inicial'}
-        </button>
-        
+      <div className="planilla-actions">
+        <Button variant="primary" onClick={registrarSalida}>
+          Registrar salida
+        </Button>
+
         {planillaCreadaId && (
-          <button onClick={cerrarPlanilla} style={{...estilos.boton, backgroundColor: '#27ae60'}}>
-             Finalizar Día y Cerrar Planilla
-          </button>
+          <Button variant="success" onClick={cerrarPlanillaActual}>
+            Cerrar planilla
+          </Button>
         )}
       </div>
-    </div>
+    </Page>
   );
 }
-
-const estilos = {
-  contenedor: { maxWidth: '900px', margin: '40px auto', padding: '20px', fontFamily: 'Arial, sans-serif' },
-  titulo: { margin: '0 0 10px 0', color: '#333' },
-  subtitulo: { fontSize: '14px', color: '#666', marginBottom: '25px' },
-  selectorSeccion: { marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' },
-  label: { fontWeight: 'bold', color: '#444' },
-  select: { padding: '8px 12px', fontSize: '15px', borderRadius: '4px', border: '1px solid #ccc' },
-  tabla: { width: '100%', borderCollapse: 'collapse', marginTop: '10px' },
-  encabezado: { backgroundColor: '#2c3e50', color: 'white', textAlign: 'left' },
-  celda: { padding: '12px', borderBottom: '1px solid #ddd', fontSize: '15px' },
-  inputTabla: { width: '70px', padding: '6px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc', textAlign: 'center' },
-  contenedorAjuste: { display: 'flex', gap: '2px', alignItems: 'center', marginLeft: '5px', borderLeft: '1px solid #eee', paddingLeft: '10px' },
-  inputAjuste: { width: '50px', padding: '5px', fontSize: '12px', borderRadius: '4px', border: '1px solid #ddd' },
-  btnAjuste: { padding: '2px 8px', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' },
-  contenedorBoton: { marginTop: '30px', display: 'flex', justifyContent: 'flex-end' },
-  botonLink: { background: 'none', border: '1px solid #3498db', color: '#3498db', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' },
-  boton: { padding: '14px 24px', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' },
-  centrado: { textAlign: 'center', marginTop: '50px', fontFamily: 'Arial, sans-serif' }
-};

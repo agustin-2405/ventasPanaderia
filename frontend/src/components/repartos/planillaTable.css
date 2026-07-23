@@ -1,0 +1,81 @@
+.planilla-desktop {
+  display: block;
+}
+
+.planilla-mobile {
+  display: none;
+}
+
+.planilla-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.planilla-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.planilla-table thead {
+  background: #f8fafc;
+}
+
+.planilla-table th,
+.planilla-table td {
+  padding: 14px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.planilla-total {
+  background: #f9fafb;
+}
+
+.planilla-total-label {
+  text-align: right;
+  font-weight: bold;
+}
+
+.planilla-total-value {
+  color: #16a34a;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.planilla-total-mobile {
+  display: none;
+}
+
+/* ==========================
+   CELULAR
+========================== */
+
+@media (max-width: 768px) {
+  .planilla-desktop {
+    display: none;
+  }
+
+  .planilla-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .planilla-total-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px;
+    border-radius: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .planilla-total-mobile strong {
+    color: #16a34a;
+  }
+}

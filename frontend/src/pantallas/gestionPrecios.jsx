@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { exito, error } from "../servicios/notificaciones";
+import Page from "../components/ui/Page";
+import { listarProductos } from "../servicios/productosApi";
+import { listarRepartidores } from "../servicios/repartidoresApi";
+import {
+  obtenerPreciosEspeciales,
+  guardarPreciosEspeciales,
+} from "../servicios/planillasApi";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Select from "../components/ui/Select";
+import PreciosTable from "../components/precios/PreciosTable";
 
 export default function GestionPrecios() {
   const [repartidores, setRepartidores] = useState([]);
@@ -11,22 +22,15 @@ export default function GestionPrecios() {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const [resRep, resProd] = await Promise.all([
-          fetch("http://localhost:4000/api/repartidores"),
-          fetch("http://localhost:4000/api/productos"),
+        const [reps, prods] = await Promise.all([
+          listarRepartidores(),
+          listarProductos(),
         ]);
 
-        if (!resRep.ok || !resProd.ok) {
-          throw new Error("No se pudieron cargar los datos.");
-        }
-
-        setRepartidores(await resRep.json());
-        setProductos(await resProd.json());
+        setRepartidores(reps);
+        setProductos(prods);
       } catch (err) {
-        error(
-          "Error al cargar datos",
-          err.message
-        );
+        error("Error al cargar datos", err.message);
       }
     };
 
@@ -35,25 +39,18 @@ export default function GestionPrecios() {
 
   // Obtener precios del repartidor seleccionado
   useEffect(() => {
-    if (!repartidorId) return;
+    if (!repartidorId) {
+      setPreciosEditados({});
+      return;
+    }
 
     const cargarPrecios = async () => {
       try {
-        const respuesta = await fetch(
-          `http://localhost:4000/api/repartos/precios/${repartidorId}`
-        );
+        const datos = await obtenerPreciosEspeciales(repartidorId);
 
-        if (!respuesta.ok) {
-          throw new Error("No se pudo obtener la lista de precios.");
-        }
-
-        const datos = await respuesta.json();
         setPreciosEditados(datos);
       } catch (err) {
-        error(
-          "Error",
-          err.message
-        );
+        error("Error", err.message);
       }
     };
 
@@ -65,137 +62,87 @@ export default function GestionPrecios() {
     if (!repartidorId) {
       error(
         "Repartidor no seleccionado",
-        "Seleccioná un repartidor antes de guardar."
+        "Seleccioná un repartidor antes de guardar.",
       );
+
       return;
     }
 
     try {
-      const respuesta = await fetch(
-        "http://localhost:4000/api/repartos/precios",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            repartidorId,
-            listaPrecios: preciosEditados,
-          }),
-        }
-      );
+      await guardarPreciosEspeciales({
+        repartidorId,
 
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        throw new Error(datos.error || "No se pudieron guardar los precios.");
-      }
+        listaPrecios: preciosEditados,
+      });
 
       exito(
         "Lista guardada",
-        "Los precios fueron actualizados correctamente."
+
+        "Los precios fueron actualizados correctamente.",
       );
     } catch (err) {
       error(
         "Error al guardar",
-        err.message
+
+        err.message,
       );
     }
   };
 
   return (
-    <div style={estilos.contenedor}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-        }}
+    <Page
+      titulo="Gestión de Precios"
+      descripcion="Administra los precios especiales por repartidor."
+    >
+      <Card
+        titulo="Listas de precios"
+        subtitulo="Cada repartidor puede tener una lista distinta."
       >
-        <h2 style={{ margin: 0 }}>
-          Listas de Precios por Repartidor
-        </h2>
-
-        <button
-          onClick={() => (window.location.hash = "#reparto")}
-          style={estilos.botonVolver}
+        <div
+          style={{
+            display: "flex",
+            gap: 20,
+            alignItems: "flex-end",
+          }}
         >
-          ⬅ Volver a Planilla
-        </button>
-      </div>
+          <div style={{ flex: 1 }}>
+            <Select
+              label="Repartidor"
+              value={repartidorId}
+              onChange={(e) => setRepartidorId(e.target.value)}
+              options={repartidores.map((r) => ({
+                value: r.id,
+                label: r.nombre,
+              }))}
+            />
+          </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <label>Seleccionar Repartidor:</label>
-
-        <select
-          value={repartidorId}
-          onChange={(e) => setRepartidorId(e.target.value)}
-          style={estilos.select}
-        >
-          <option value="">-- Seleccione --</option>
-
-          {repartidores.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
+          <Button
+            variant="secondary"
+            onClick={() => (window.location.hash = "#reparto")}
+          >
+            Volver
+          </Button>
+        </div>
+      </Card>
 
       {repartidorId && (
         <>
-          <table style={estilos.tabla}>
-            <thead>
-              <tr style={estilos.encabezado}>
-                <th>Producto</th>
-                <th>Precio General</th>
-                <th>Precio Especial</th>
-              </tr>
-            </thead>
+          <PreciosTable
+            productos={productos}
+            preciosEditados={preciosEditados}
+            setPreciosEditados={setPreciosEditados}
+          />
 
-            <tbody>
-              {productos.map((p) => (
-                <tr key={p.id}>
-                  <td style={estilos.celda}>{p.nombre}</td>
-
-                  <td style={estilos.celda}>
-                    ${Number(p.precio).toFixed(2)}
-                  </td>
-
-                  <td style={estilos.celda}>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder={p.precio}
-                      value={preciosEditados[p.id] ?? ""}
-                      onChange={(e) =>
-                        setPreciosEditados({
-                          ...preciosEditados,
-                          [p.id]:
-                            e.target.value === ""
-                              ? ""
-                              : parseFloat(e.target.value),
-                        })
-                      }
-                      style={estilos.input}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <button
-            onClick={guardarLista}
-            style={estilos.boton}
-          >
-            Guardar Lista de Precios
-          </button>
+          <Button
+  variant="success"
+  onClick={guardarLista}
+>
+  Guardar Lista de Precios
+</Button>
         </>
       )}
-    </div>
+    </Page>
   );
 }
 

@@ -1,0 +1,66 @@
+:root {
+  /* ===== Colores principales ===== */
+  --color-primary: #27374d;
+  --color-primary-light: #526d82;
+  --color-primary-dark: #1d2b36;
+
+  --color-accent: #e67e22;
+  --color-accent-hover: #d35400;
+
+  /* ===== Estados ===== */
+  --color-success: #27ae60;
+  --color-warning: #f39c12;
+  --color-danger: #e74c3c;
+  --color-info: #3498db;
+
+  /* ===== Fondos ===== */
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-sidebar: #27374d;
+
+  /* ===== Texto ===== */
+  --color-text: #2c3e50;
+  --color-text-light: #7f8c8d;
+  --color-text-white: #ffffff;
+
+  /* ===== Bordes ===== */
+  --color-border: #e5e7eb;
+  --color-border-light: #f1f3f5;
+
+  /* ===== Sombras ===== */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* ===== Bordes redondeados ===== */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* ===== Espaciados ===== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* ===== Tipografía ===== */
+  --font-family: "Inter", Arial, Helvetica, sans-serif;
+
+  --font-xs: 12px;
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 24px;
+  --font-2xl: 32px;
+
+  /* ===== Transiciones ===== */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+
+  /* ===== Layout ===== */
+  --sidebar-width: 280px;
+  --header-height: 80px;
+}
