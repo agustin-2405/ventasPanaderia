@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import SidebarSection from "./SidebarSection";
-import logo from "../../assets/logo-pan-removebg-preview.png";
+import logo from "../../assets/WhatsApp Image 2026-07-04 at 12.34.40.jpeg";
 
 import "../../styles/sidebar.css";
 
