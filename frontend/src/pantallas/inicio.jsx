@@ -29,9 +29,14 @@ export default function Inicio() {
         fetch(`${API}/productos`),
         fetch(`${API}/repartidores`),
       ]);
-      if (resProductos.ok) setProductos(await resProductos.json());
 
-      if (resRepartidores.ok) setRepartidores(await resRepartidores.json());
+      if (productosRes.ok) {
+        setProductos(await productosRes.json());
+      }
+
+      if (repartidoresRes.ok) {
+        setRepartidores(await repartidoresRes.json());
+      }
     } catch (e) {
       console.error(e);
     }
