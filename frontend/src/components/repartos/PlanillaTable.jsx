@@ -63,19 +63,25 @@ export default function PlanillaTable({
           ESCRITORIO
       ======================= */}
       <div className="planilla-buscador">
-        <input
-          type="text"
-          placeholder="🔍 Buscar producto..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="planilla-input-buscador"
-        />
+        <div className="planilla-input-wrapper">
+          <input
+            type="text"
+            placeholder="🔍 Buscar producto..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="planilla-input-buscador"
+          />
 
-        {busqueda && (
-          <button className="planilla-limpiar" onClick={() => setBusqueda("")}>
-            ✕
-          </button>
-        )}
+          {busqueda && (
+            <button
+              type="button"
+              className="planilla-limpiar"
+              onClick={() => setBusqueda("")}
+            >
+              ✕
+            </button>
+          )}
+        </div>
 
         <span className="planilla-contador">
           Mostrando {productosFiltrados.length} de {productos.length} productos

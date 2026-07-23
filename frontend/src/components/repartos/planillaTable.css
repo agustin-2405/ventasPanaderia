@@ -83,19 +83,25 @@
 .planilla-buscador {
   position: sticky;
   top: 0;
-  background: #fff;
+  background: white;
   z-index: 20;
   padding-bottom: 16px;
   margin-bottom: 16px;
 }
 
+.planilla-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .planilla-input-buscador {
   width: 100%;
-  padding: 12px 14px;
+  padding: 12px 42px 12px 14px;
   border: 1px solid #d1d5db;
   border-radius: 10px;
   font-size: 15px;
   outline: none;
+  box-sizing: border-box;
 }
 
 .planilla-input-buscador:focus {
@@ -103,12 +109,27 @@
 }
 
 .planilla-limpiar {
-  margin-top: 8px;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
   border: none;
-  background: none;
+  background: transparent;
+  border-radius: 50%;
   cursor: pointer;
-  color: #2563eb;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #6b7280;
+  transition: 0.2s;
+}
+
+.planilla-limpiar:hover {
+  background: #f3f4f6;
+  color: #111827;
 }
 
 .planilla-contador {
