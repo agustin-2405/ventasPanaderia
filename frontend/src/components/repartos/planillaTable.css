@@ -79,3 +79,41 @@
     color: #16a34a;
   }
 }
+
+.planilla-buscador {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 20;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.planilla-input-buscador {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+}
+
+.planilla-input-buscador:focus {
+  border-color: #2563eb;
+}
+
+.planilla-limpiar {
+  margin-top: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #2563eb;
+  font-weight: bold;
+}
+
+.planilla-contador {
+  display: block;
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}

@@ -48,7 +48,7 @@
 @media (max-width: 768px) {
   .page {
     padding: 12px;
-    maxWidth: 100%;
+    max-width: 100%;
   }
 
   .page-header {

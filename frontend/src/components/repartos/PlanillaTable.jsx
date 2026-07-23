@@ -1,5 +1,5 @@
 import "./planillaTable.css";
-
+import { useMemo, useState } from "react";
 import Card from "../ui/Card";
 import PlanillaRow from "./PlanillaRow";
 import PlanillaCard from "./PlanillaCard";
@@ -28,6 +28,32 @@ export default function PlanillaTable({
     return acc + vendido * precio;
   }, 0);
 
+  const [busqueda, setBusqueda] = useState("");
+
+  const productosFiltrados = useMemo(() => {
+    return [...productos]
+      .filter((producto) =>
+        producto.nombre.toLowerCase().includes(busqueda.toLowerCase()),
+      )
+      .sort((a, b) => {
+        const aCargado =
+          Number(cantidadesLlevadas[a.id] || 0) +
+            Number(cantidadesDevueltas[a.id] || 0) >
+          0;
+
+        const bCargado =
+          Number(cantidadesLlevadas[b.id] || 0) +
+            Number(cantidadesDevueltas[b.id] || 0) >
+          0;
+
+        if (aCargado === bCargado) {
+          return a.nombre.localeCompare(b.nombre);
+        }
+
+        return bCargado - aCargado;
+      });
+  }, [productos, busqueda, cantidadesLlevadas, cantidadesDevueltas]);
+
   return (
     <Card
       titulo="Detalle de la mercadería"
@@ -36,7 +62,25 @@ export default function PlanillaTable({
       {/* =======================
           ESCRITORIO
       ======================= */}
+      <div className="planilla-buscador">
+        <input
+          type="text"
+          placeholder="🔍 Buscar producto..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="planilla-input-buscador"
+        />
 
+        {busqueda && (
+          <button className="planilla-limpiar" onClick={() => setBusqueda("")}>
+            ✕
+          </button>
+        )}
+
+        <span className="planilla-contador">
+          Mostrando {productosFiltrados.length} de {productos.length} productos
+        </span>
+      </div>
       <div className="planilla-desktop">
         <div className="planilla-table-container">
           <table className="planilla-table">
@@ -52,7 +96,7 @@ export default function PlanillaTable({
             </thead>
 
             <tbody>
-              {productos.map((producto) => (
+              {productosFiltrados.map((producto) => (
                 <PlanillaRow
                   key={producto.id}
                   producto={producto}
@@ -91,7 +135,7 @@ export default function PlanillaTable({
       ======================= */}
 
       <div className="planilla-mobile">
-        {productos.map((producto) => (
+        {productosFiltrados.map((producto) => (
           <PlanillaCard
             key={producto.id}
             producto={producto}
