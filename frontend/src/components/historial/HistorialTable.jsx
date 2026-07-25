@@ -32,7 +32,12 @@ export default function HistorialTable({ items, productos, totalDinero }) {
 
             const nombre = producto ? producto.nombre : `Producto ${id}`;
 
-            const precio = Number(producto?.precio || 0);
+            const precio = Number(
+              item.precioUnitario ??
+                item.precio_unitario ??
+                producto?.precio ??
+                0,
+            );
 
             const llevado = Number(item.cantidadLlevada ?? item.cantidad ?? 0);
 

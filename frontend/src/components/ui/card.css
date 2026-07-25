@@ -41,7 +41,7 @@
 }
 
 /* ==========================
-   RESPONSIVE
+   TABLET
 ========================== */
 
 @media (max-width: 768px) {
@@ -54,19 +54,11 @@
     flex-direction: column;
     align-items: stretch;
     gap: 14px;
-    padding: 18px;
-  }
-
-  .card-title {
-    font-size: 1.1rem;
-  }
-
-  .card-subtitle {
-    font-size: 0.9rem;
+    padding: 16px;
   }
 
   .card-body {
-    padding: 18px;
+    padding: 16px;
   }
 
   .card-actions {
@@ -78,17 +70,23 @@
   }
 }
 
+/* ==========================
+   CELULAR
+========================== */
+
 @media (max-width: 480px) {
   .card {
     border-radius: 12px;
+    margin-bottom: 14px;
   }
 
   .card-header {
-    padding: 16px;
+    padding: 12px;
+    gap: 10px;
   }
 
   .card-body {
-    padding: 16px;
+    padding: 12px;
   }
 
   .card-actions {

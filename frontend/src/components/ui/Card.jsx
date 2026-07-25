@@ -1,8 +1,15 @@
 import "./card.css";
 
-export default function Card({ titulo, subtitulo, actions, children }) {
+export default function Card({
+  titulo,
+  subtitulo,
+  actions,
+  children,
+  className = "",
+  style = {},
+}) {
   return (
-    <section className="card">
+    <section className={`card ${className}`} style={style}>
       {(titulo || subtitulo || actions) && (
         <div className="card-header">
           <div>

@@ -48,7 +48,8 @@ export default function PlanillaRow({
               type="number"
               min={0}
               step={0.5}
-              value={llevado}
+              placeholder="0"
+              value={llevado === 0 ? "" : llevado}
               onChange={(e) =>
                 manejarCambioCantidad(producto.id, e.target.value, "llevada")
               }
@@ -62,7 +63,7 @@ export default function PlanillaRow({
                 min={0}
                 step={0.5}
                 placeholder="0"
-                value={ajustes[producto.id] || ""}
+                value={ajustes[producto.id] ?? ""}
                 onChange={(e) =>
                   setAjustes((prev) => ({
                     ...prev,
@@ -95,8 +96,8 @@ export default function PlanillaRow({
             type="number"
             min={0}
             step={0.5}
-            value={devuelto}
             placeholder="0"
+            value={devuelto === 0 ? "" : devuelto}
             onFocus={() => setFase("RETORNO")}
             onChange={(e) =>
               manejarCambioCantidad(producto.id, e.target.value, "retorno")

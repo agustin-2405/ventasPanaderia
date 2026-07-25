@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import HistorialTable from "./HistorialTable";
+import HistorialMobile from "./HistorialMobile";
 
 export default function HistorialCard({ planilla, productos }) {
   const items = Array.isArray(planilla.productos)
@@ -14,25 +16,35 @@ export default function HistorialCard({ planilla, productos }) {
 
     const producto = productos.find((prod) => prod.id == idBuscado);
 
-    const precio = producto ? Number(producto.precio) : 0;
+    const precio = Number(
+      item.precioUnitario ?? item.precio_unitario ?? producto?.precio ?? 0,
+    );
 
     const llevado = Number(item.cantidadLlevada ?? item.cantidad ?? 0);
-
     const devuelto = Number(item.cantidadDevuelta ?? 0);
-
     const vendido = Math.max(0, llevado - devuelto);
 
     return total + vendido * precio;
   }, 0);
 
+  const [esMobile, setEsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const manejarResize = () => {
+      setEsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", manejarResize);
+
+    return () => window.removeEventListener("resize", manejarResize);
+  }, []);
+
   return (
     <Card>
       <div style={estilos.header}>
-        <div>
-          <h3 style={estilos.fecha}>
-            {new Date(planilla.fecha).toLocaleDateString("es-AR")}
-          </h3>
-        </div>
+        <h3 style={estilos.fecha}>
+          {new Date(planilla.fecha).toLocaleDateString("es-AR")}
+        </h3>
 
         <div style={estilos.acciones}>
           <span
@@ -62,11 +74,19 @@ export default function HistorialCard({ planilla, productos }) {
         </div>
       </div>
 
-      <HistorialTable
-        items={items}
-        productos={productos}
-        totalDinero={totalDinero}
-      />
+      {esMobile ? (
+        <HistorialMobile
+          items={items}
+          productos={productos}
+          totalDinero={totalDinero}
+        />
+      ) : (
+        <HistorialTable
+          items={items}
+          productos={productos}
+          totalDinero={totalDinero}
+        />
+      )}
     </Card>
   );
 }
@@ -75,22 +95,23 @@ const estilos = {
   header: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
+    alignItems: "center",
     flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 12,
   },
 
   fecha: {
     margin: 0,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 700,
     color: "#1F2937",
   },
 
   acciones: {
     display: "flex",
-    gap: 10,
     alignItems: "center",
+    gap: 10,
     flexWrap: "wrap",
   },
 

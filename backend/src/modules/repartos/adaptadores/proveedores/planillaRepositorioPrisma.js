@@ -2,19 +2,29 @@ const prisma = require("../../../../config/database");
 
 class PlanillaRepositorioPrisma {
   async save(planilla) {
+    const items = await Promise.all(
+      planilla.productos.map(async (item) => ({
+        productoId: item.productoId,
+        cantidadLlevada: item.cantidadLlevada,
+        cantidadDevuelta: item.cantidadDevuelta,
+        precioUnitario: await this.obtenerPrecioAplicado(
+          planilla.repartidorId,
+          item.productoId,
+        ),
+      })),
+    );
+
     return prisma.planilla.create({
       data: {
         repartidorId: planilla.repartidorId,
         estado: planilla.estado,
         fecha: planilla.fecha,
+
         items: {
-          create: planilla.productos.map((item) => ({
-            productoId: item.productoId,
-            cantidadLlevada: item.cantidadLlevada,
-            cantidadDevuelta: item.cantidadDevuelta,
-          })),
+          create: items,
         },
       },
+
       include: {
         repartidor: true,
         items: true,
@@ -42,12 +52,37 @@ class PlanillaRepositorioPrisma {
 
   async actualizar(id, productos) {
     return await prisma.$transaction(async (tx) => {
+      const planilla = await tx.planilla.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          repartidorId: true,
+        },
+      });
+
+      if (!planilla) {
+        throw new Error("Planilla no encontrada.");
+      }
+
       // Eliminamos todos los items actuales
       await tx.itemPlanilla.deleteMany({
         where: {
           planillaId: id,
         },
       });
+
+      const items = await Promise.all(
+        productos.map(async (p) => ({
+          productoId: p.productoId,
+          cantidadLlevada: p.cantidad,
+          cantidadDevuelta: 0,
+          precioUnitario: await this.obtenerPrecioAplicado(
+            planilla.repartidorId,
+            p.productoId,
+          ),
+        })),
+      );
 
       // Creamos los nuevos
       return await tx.planilla.update({
@@ -57,11 +92,7 @@ class PlanillaRepositorioPrisma {
 
         data: {
           items: {
-            create: productos.map((p) => ({
-              productoId: p.productoId,
-              cantidadLlevada: p.cantidad,
-              cantidadDevuelta: 0,
-            })),
+            create: items,
           },
         },
 
@@ -152,7 +183,10 @@ class PlanillaRepositorioPrisma {
     });
   }
 
-  // Precios especiales
+  // ==========================
+  // PRECIOS ESPECIALES
+  // ==========================
+
   async obtenerPreciosEspeciales(repartidorId) {
     const precios = await prisma.precioEspecial.findMany({
       where: {
@@ -160,8 +194,6 @@ class PlanillaRepositorioPrisma {
       },
     });
 
-    // Lo convertimos a:
-    // { productoId: precio }
     return precios.reduce((acc, item) => {
       acc[item.productoId] = Number(item.precio);
       return acc;
@@ -195,6 +227,33 @@ class PlanillaRepositorioPrisma {
     }
 
     return true;
+  }
+
+  async obtenerPrecioAplicado(repartidorId, productoId) {
+    const precioEspecial = await prisma.precioEspecial.findUnique({
+      where: {
+        repartidorId_productoId: {
+          repartidorId,
+          productoId,
+        },
+      },
+    });
+
+    if (precioEspecial) {
+      return Number(precioEspecial.precio);
+    }
+
+    const producto = await prisma.producto.findUnique({
+      where: {
+        id: productoId,
+      },
+    });
+
+    if (!producto) {
+      throw new Error("Producto no encontrado.");
+    }
+
+    return Number(producto.precio);
   }
 }
 

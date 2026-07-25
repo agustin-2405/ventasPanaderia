@@ -61,6 +61,8 @@ model ItemPlanilla {
   cantidadLlevada Decimal @db.Decimal(10, 1)
 
   cantidadDevuelta Decimal @default(0) @db.Decimal(10, 1)
+
+  precioUnitario Decimal? @db.Decimal(10,2)
 }
 
 model PrecioEspecial {
