@@ -12,6 +12,7 @@ import PlanillaTable from "../components/repartos/PlanillaTable";
 import PlanillaToolbar from "../components/repartos/PlanillaToolbar";
 import Button from "../components/ui/Button";
 import "./planillaReparto.css";
+import { exito, error } from "../servicios/notificaciones";
 
 export default function PlanillaReparto() {
   // Datos maestros que traemos del backend
@@ -30,9 +31,9 @@ export default function PlanillaReparto() {
   const [planillaCreadaId, setPlanillaCreadaId] = useState(null);
   const [cargando, setCargando] = useState(true);
 
-useEffect(() => {
-  console.log("preciosRepartidor actualizado:", preciosRepartidor);
-}, [preciosRepartidor]);
+  useEffect(() => {
+    console.log("preciosRepartidor actualizado:", preciosRepartidor);
+  }, [preciosRepartidor]);
 
   useEffect(() => {
     const cargarDatosMaestros = async () => {
@@ -45,7 +46,7 @@ useEffect(() => {
         setRepartidores(reps);
         setProductos(prods);
       } catch (err) {
-        alert("Error al cargar datos de logística.");
+        error("Error al cargar datos de logística.");
       } finally {
         setCargando(false);
       }
@@ -65,9 +66,9 @@ useEffect(() => {
       try {
         const datos = await obtenerPreciosEspeciales(repartidorSeleccionado);
 
-console.log("Respuesta API:", datos);
+        console.log("Respuesta API:", datos);
 
-setPreciosRepartidor(datos);
+        setPreciosRepartidor(datos);
       } catch (err) {
         console.error(err);
 
@@ -156,7 +157,10 @@ setPreciosRepartidor(datos);
   // 1. Despachar Reparto (Mañana)
   const registrarSalida = async () => {
     if (!repartidorSeleccionado) {
-      alert("Seleccioná un repartidor.");
+      error(
+        "Repartidor no seleccionado",
+        "Seleccioná un repartidor para continuar.",
+      );
       return;
     }
 
@@ -168,9 +172,12 @@ setPreciosRepartidor(datos);
       }));
 
     if (itemsCargados.length === 0) {
-      alert("Debés cargar al menos un producto.");
+      error("Sin productos", "Debés cargar al menos un producto.");
       return;
     }
+
+    console.log("Estado cantidadesLlevadas:", cantidadesLlevadas);
+console.log("Items enviados al backend:", itemsCargados);
 
     try {
       let datos;
@@ -189,9 +196,9 @@ setPreciosRepartidor(datos);
         setPlanillaCreadaId(datos.id);
       }
 
-      alert("Carga guardada correctamente.");
+      exito("Salida registrada", "La carga se guardó correctamente.");
     } catch (err) {
-      alert(err.message);
+      error("No se pudo guardar la planilla", err.message);
     }
   };
 
@@ -207,7 +214,7 @@ setPreciosRepartidor(datos);
 
       await cerrarPlanillaApi(planillaCreadaId, devoluciones);
 
-      alert("¡Planilla cerrada correctamente!");
+      exito("Planilla cerrada", "La rendición se registró correctamente.");
 
       setPlanillaCreadaId(null);
       setRepartidorSeleccionado("");
@@ -215,7 +222,7 @@ setPreciosRepartidor(datos);
       setCantidadesDevueltas({});
       setFase("SALIDA");
     } catch (err) {
-      alert(err.message);
+      error("No se pudo cerrar la planilla", err.message);
     }
   };
 
