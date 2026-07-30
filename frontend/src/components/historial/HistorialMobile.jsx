@@ -1,12 +1,12 @@
 export default function HistorialMobile({ items, productos, totalDinero }) {
   return (
-    <div style={estilos.contenedor}>
-      {items.map((item, index) => {
+    <div style={estilos.lista}>
+      {items.map((item) => {
         const id = item.productoId || item.producto_id;
 
         const producto = productos.find((p) => p.id == id);
 
-        const nombre = producto ? producto.nombre : `Producto ${id}`;
+        const nombre = producto?.nombre ?? `Producto ${id}`;
 
         const precio = Number(
           item.precioUnitario ?? item.precio_unitario ?? producto?.precio ?? 0,
@@ -21,35 +21,49 @@ export default function HistorialMobile({ items, productos, totalDinero }) {
         const importe = vendido * precio;
 
         return (
-          <div key={index} style={estilos.producto}>
+          <div key={item.id ?? id} style={estilos.card}>
             <div style={estilos.nombre}>{nombre}</div>
 
-            <div style={estilos.fila}>
-              <span>Llevó</span>
-              <strong>{llevado}</strong>
-            </div>
+            <div style={estilos.metricas}>
+              <div style={estilos.metrica}>
+                <div style={estilos.numero}>{llevado}</div>
+                <div style={estilos.label}>Llevó</div>
+              </div>
 
-            <div style={estilos.fila}>
-              <span>Devueltas</span>
+              <div style={estilos.metrica}>
+                <div
+                  style={{
+                    ...estilos.numero,
+                    color: "#DC2626",
+                  }}
+                >
+                  {devuelto}
+                </div>
+                <div style={estilos.label}>Dev.</div>
+              </div>
 
-              <strong style={estilos.rojo}>{devuelto}</strong>
-            </div>
-
-            <div style={estilos.fila}>
-              <span>Vendidas</span>
-
-              <strong style={estilos.verde}>{vendido}</strong>
+              <div style={estilos.metrica}>
+                <div
+                  style={{
+                    ...estilos.numero,
+                    color: "#16A34A",
+                  }}
+                >
+                  {vendido}
+                </div>
+                <div style={estilos.label}>Vend.</div>
+              </div>
             </div>
 
             <div style={estilos.divisor} />
 
-            <div style={estilos.fila}>
+            <div style={estilos.info}>
               <span>Precio unitario</span>
 
               <strong>${precio.toLocaleString("es-AR")}</strong>
             </div>
 
-            <div style={estilos.filaImporte}>
+            <div style={estilos.totalProducto}>
               <span>Importe</span>
 
               <strong>${importe.toLocaleString("es-AR")}</strong>
@@ -59,9 +73,9 @@ export default function HistorialMobile({ items, productos, totalDinero }) {
       })}
 
       <div style={estilos.total}>
-        <div style={estilos.totalTitulo}>TOTAL RECAUDADO</div>
+        <div style={estilos.totalLabel}>TOTAL RECAUDADO</div>
 
-        <div style={estilos.totalImporte}>
+        <div style={estilos.totalValor}>
           ${totalDinero.toLocaleString("es-AR")}
         </div>
       </div>
@@ -70,79 +84,95 @@ export default function HistorialMobile({ items, productos, totalDinero }) {
 }
 
 const estilos = {
-  contenedor: {
+  lista: {
     display: "flex",
     flexDirection: "column",
-    gap: 16,
-    marginTop: 18,
+    gap: 12,
   },
 
-  producto: {
+  card: {
     background: "#F9FAFB",
     border: "1px solid #E5E7EB",
     borderRadius: 14,
-    padding: 18,
+    padding: 14,
   },
 
   nombre: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 700,
-    marginBottom: 18,
+    color: "#111827",
+    marginBottom: 14,
+  },
+
+  metricas: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  metrica: {
+    flex: 1,
+    textAlign: "center",
+    background: "#FFFFFF",
+    border: "1px solid #E5E7EB",
+    borderRadius: 10,
+    padding: "10px 6px",
+  },
+
+  numero: {
+    fontSize: 22,
+    fontWeight: 700,
     color: "#111827",
   },
 
-  fila: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "6px 0",
-    fontSize: 16,
-  },
-
-  filaImporte: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-    paddingTop: 10,
-    borderTop: "1px solid #E5E7EB",
-    fontWeight: 700,
-    fontSize: 18,
-    color: "#16A34A",
+  label: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#6B7280",
   },
 
   divisor: {
     height: 1,
     background: "#E5E7EB",
-    margin: "10px 0",
+    marginBottom: 12,
   },
 
-  rojo: {
-    color: "#DC2626",
+  info: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: 15,
+    marginBottom: 8,
   },
 
-  verde: {
+  totalProducto: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: 18,
+    fontWeight: 700,
     color: "#16A34A",
   },
 
   total: {
+    marginTop: 8,
     background: "#ECFDF5",
     border: "1px solid #BBF7D0",
-    borderRadius: 16,
-    padding: 22,
-    marginTop: 4,
+    borderRadius: 14,
+    padding: 16,
   },
 
-  totalTitulo: {
+  totalLabel: {
     color: "#166534",
-    fontWeight: 700,
-    fontSize: 15,
+    fontWeight: 600,
+    fontSize: 14,
   },
 
-  totalImporte: {
-    marginTop: 10,
+  totalValor: {
+    marginTop: 6,
     color: "#16A34A",
+    fontSize: 28,
     fontWeight: 800,
-    fontSize: 30,
   },
 };
