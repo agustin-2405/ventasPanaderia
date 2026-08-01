@@ -176,9 +176,6 @@ export default function PlanillaReparto() {
       return;
     }
 
-    console.log("Estado cantidadesLlevadas:", cantidadesLlevadas);
-console.log("Items enviados al backend:", itemsCargados);
-
     try {
       let datos;
 

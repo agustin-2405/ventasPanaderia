@@ -1,17 +1,22 @@
 import API from "./api";
+import { obtenerConCache, limpiarCache } from "./cache";
 
 /* ==========================
    PRODUCTOS
 ========================== */
 
 export async function listarProductos() {
-  const res = await fetch(`${API}/productos`);
+  return obtenerConCache("productos", 60, async () => {
+    const res = await fetch(`${API}/productos`);
 
-  if (!res.ok) {
-    throw new Error("No se pudieron obtener los productos.");
-  }
+    const json = await res.json();
 
-  return res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "No se pudieron obtener los productos.");
+    }
+
+    return json;
+  });
 }
 
 export async function crearProducto(producto) {
@@ -28,6 +33,8 @@ export async function crearProducto(producto) {
   if (!res.ok) {
     throw new Error(datos.error || "Error al crear producto.");
   }
+
+  limpiarCache("productos");
 
   return datos;
 }
@@ -51,6 +58,8 @@ export async function actualizarProducto(id, datos) {
     throw new Error(json.error || "No se pudo actualizar el producto.");
   }
 
+  limpiarCache("productos");
+
   return json;
 }
 
@@ -68,6 +77,8 @@ export async function eliminarProducto(id) {
   if (!res.ok) {
     throw new Error(json.error || "No se pudo eliminar el producto.");
   }
+
+  limpiarCache("productos");
 
   return json;
 }

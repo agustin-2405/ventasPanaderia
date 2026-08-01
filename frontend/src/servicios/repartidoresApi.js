@@ -1,17 +1,20 @@
 import API from "./api";
+import { obtenerConCache, limpiarCache } from "./cache";
 
 export async function listarRepartidores() {
-  const res = await fetch(`${API}/repartidores`);
+  return obtenerConCache("repartidores", 60, async () => {
+    const res = await fetch(`${API}/repartidores`);
 
-  const datos = await res.json();
+    const datos = await res.json();
 
-  if (!res.ok) {
-    throw new Error(
-      datos.error || "No se pudo obtener la lista de repartidores."
-    );
-  }
+    if (!res.ok) {
+      throw new Error(
+        datos.error || "No se pudo obtener la lista de repartidores.",
+      );
+    }
 
-  return datos;
+    return datos;
+  });
 }
 
 export async function crearRepartidor(repartidor) {
@@ -26,10 +29,11 @@ export async function crearRepartidor(repartidor) {
   const datos = await res.json();
 
   if (!res.ok) {
-    throw new Error(
-      datos.error || "No se pudo registrar el repartidor."
-    );
+    throw new Error(datos.error || "No se pudo registrar el repartidor.");
   }
+
+  // El listado quedó desactualizado, lo borramos
+  limpiarCache("repartidores");
 
   return datos;
 }
